@@ -1,10 +1,10 @@
 
 
-package Exp_S5_Camila_Reid;
+package Exp_S6_Camila_Reid;
 
 import java.util.Scanner;
-import Exp_S5_Camila_Reid.modelo.Entrada;
-import Exp_S5_Camila_Reid.servicio.GestorEntradas;
+import Exp_S6_Camila_Reid.modelo.Entrada;
+import Exp_S6_Camila_Reid.servicio.GestorEntradas;
 
 public class Menu {
     private final GestorEntradas gestor = new GestorEntradas();
@@ -24,7 +24,7 @@ public class Menu {
         int opcion = 0;
 
         do {
-            System.out.println("\n=== Menú Teatro Moro ====");
+            System.out.println("\n=== MENÚ TEATRO MORO ====");
             System.out.println("1. Comprar entrada");
             System.out.println("2. Promociones");
             System.out.println("3. Buscar entrada");
@@ -63,7 +63,7 @@ public class Menu {
     private void comprarEntrada() {
         System.out.println("\n=== RESERVA DE ASIENTOS ===");
         System.out.println("Leyenda: [ ] = Libre | [X] = Ocupado\n");
-        System.out.print("   ");
+        System.out.print("    ");
         for (int i = 1; i <= 6; i++) System.out.print(" " + i + " ");
         System.out.println();
 
@@ -99,9 +99,17 @@ public class Menu {
 
         // Solicitar edad
         System.out.print("Ingresa tu edad: ");
-        int edad = sc.nextInt();
-        sc.nextLine();
-        boolean esTerceraEdad = edad >= 65;
+        
+        boolean esTerceraEdad = false; 
+        
+        if (!sc.hasNextInt()) {
+            System.out.println("Ingresa un número válido");
+            sc.nextLine(); // limpia buffer
+        } else {
+            int edad = sc.nextInt();
+            esTerceraEdad = edad >= 65;
+            sc.nextLine(); // limpia buffer
+        }
 
         // Preguntar si es estudiante
         boolean esEstudiante = false;
@@ -118,34 +126,51 @@ public class Menu {
 
         double precioBase = Teatro.getPrecio("General");
         double precioFinal = calcularPrecioPromocion(precioBase, segundaEntrada, esEstudiante, esTerceraEdad);
-
-        // Marcar asiento ocupado
-        ocuparAsiento(fila, num);
-
-        // Guardar entrada
-        Entrada entrada = new Entrada(num, String.valueOf(fila), precioFinal, esEstudiante ? "Estudiante" : esTerceraEdad ? "Tercera Edad" : "Normal");
-        gestor.venderEntrada(entrada);
         
-        System.out.println(entrada);
-        System.out.println("Total: $" + precioFinal);
-        System.out.println("¿Deseas confirmar tu compra?");
+        System.out.println("\nAsiento reservado con éxito: ");
+        System.out.println("Fila: " + fila + ", Número: " + num);
+        System.out.println("Precio final: $" + precioFinal);
+        
+        
+        // Mostrar tipo de descuento
+        if (esEstudiante) {
+            System.out.println("Descuento aplicado: 10% por estudiante");
+        } else if (esTerceraEdad) {
+            System.out.println("Descuento aplicado: 15% por tercera edad");
+        } else if (segundaEntrada) {
+            System.out.println("Descuento aplicado: 20% por tercera edad");
+        } else {
+            System.out.println("Descuento aplicado: Ninguno");
+        }
+        
+        // Confirmar compra
+        System.out.println("\n¿Deseas confirmar tu compra?");
         System.out.println("1) Sí");
         System.out.println("2) No");
-        int resp = sc.nextInt();
+        int confirmarCompra = sc.nextInt();
+        sc.nextLine(); // limpiar buffer
         
-        switch (resp) {
+        switch (confirmarCompra) {
             case 1 -> {
-                System.out.println("Compra confirmada");
+                // Marcar asiento ocupado
+                ocuparAsiento(fila, num);
+                // Crear y guardar entrada
+                Entrada entrada = new Entrada(String.valueOf(fila), precioFinal, 
+                        esEstudiante ? "Estudiante" : esTerceraEdad ? "Tercera Edad" : "Normal");
                 
+                // Vender entrada (número asignado automáticamente)
+                gestor.venderEntrada(entrada);
+                
+                // Mostrar entrada
+                System.out.printf("Compra confirmada. Aquí está tu entrada: \n");
+                System.out.println(entrada); // toString()
             }
-                case 2 -> {
+            case 2 -> {
                 System.out.println("Compra anulada");
             }
-             default -> 
-                System.out.println("Opción inválida. Intente nuevamente.");
-    }  
-            
-        System.out.printf("Asiento reservado. Total: $%.0f\n", precioFinal);
+
+            default -> System.out.println("Opción inválida");
+        }
     }
 
     private void mostrarPromociones() {
@@ -160,15 +185,18 @@ public class Menu {
 
         if (simular == 1) {
             simularPromociones();
+        } else if (simular != 2) {
+            System.out.println("Opción inválida. Intente nuevamente.");
         }
     }
 
     private void simularPromociones() {
-        System.out.println("\n=== Simulación de Promociones ===");
+        System.out.println("\n=== SIMULACIÓN DE PROMOCIONES ===");
 
         System.out.print("Ingresa ubicación de las entradas (VIP, Platea, General): ");
         String ubicacion = sc.nextLine();
         double precioBase = Teatro.getPrecio(ubicacion);
+        
         if (precioBase == 0) {
             System.out.println("Ubicación inválida");
             return;
@@ -209,10 +237,7 @@ public class Menu {
         Entrada e = gestor.buscarEntrada(numero);
         if (e != null) {
             System.out.println("Entrada encontrada:");
-            System.out.println("Número: " + e.getNumero());
-            System.out.println("Ubicación: " + e.getUbicacion());
-            System.out.println("Tipo: " + e.getTipoCliente());
-            System.out.println("Precio final: $" + e.getPrecioFinal());
+            System.out.println(e); // toString de Entrada
         } else {
             System.out.println("No se encontró la entrada.");
         }
@@ -220,18 +245,30 @@ public class Menu {
 
     private void eliminarEntrada() {
         System.out.print("Ingresa el número de la entrada a eliminar: ");
+        
+        if (!sc.hasNextInt()) { // validar que sea un número
+            System.out.println("Opción inválida. Debes ingresar un número.");
+            sc.nextLine(); // limpiar buffer
+            return; // salir del método
+    }
         int numero = sc.nextInt();
         sc.nextLine();
-
+        
         Entrada e = gestor.buscarEntrada(numero);
         if (e != null) {
-            System.out.println("Entrada encontrada: " + e.getNumero() + " - " + e.getTipoCliente() + " - $" + e.getPrecioFinal());
+            System.out.println("Entrada encontrada: ");
+            System.out.println(e); // toString() de Entrada
+            
             System.out.print("¿Desea eliminarla? (s/n): ");
             String resp = sc.nextLine();
+            
             if (resp.equalsIgnoreCase("s")) {
                 boolean eliminado = gestor.eliminarEntrada(numero);
-                if (eliminado) System.out.println("Entrada eliminada con éxito.");
-                else System.out.println("No se pudo eliminar la entrada.");
+                if (eliminado) {
+                    System.out.println("Entrada eliminada con éxito.");
+                } else {
+                    System.out.println("No se pudo eliminar la entrada.");
+                }
             } else {
                 System.out.println("Operación cancelada.");
             }
@@ -240,12 +277,15 @@ public class Menu {
         }
     }
 
-    private void verEstadisticas() {
-        System.out.println("Entradas vendidas:");
-        gestor.getEntradasVendidas().forEach(e ->
-                System.out.println("Entrada #" + e.getNumero() + " - " + e.getUbicacion() + " - $" + e.getPrecioFinal())
-        );
+   private void verEstadisticas() {
+    System.out.println("Entradas vendidas:");
+
+    if (gestor.getEntradasVendidas().isEmpty()) {
+        System.out.println("0");
+    } else {
+        gestor.getEntradasVendidas().forEach(System.out::println);
     }
+}
 
     // ================= Métodos auxiliares ==================
 

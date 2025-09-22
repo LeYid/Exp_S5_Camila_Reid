@@ -1,6 +1,6 @@
 
 
-package Exp_S5_Camila_Reid;
+package Exp_S6_Camila_Reid;
 
 public class Teatro {
     private static final double PRECIO_VIP = 30000;
